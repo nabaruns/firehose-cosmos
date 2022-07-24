@@ -1,4 +1,5 @@
 .DS_Store
+.idea
 tmp
 devel/**/tmp
 fh-data
