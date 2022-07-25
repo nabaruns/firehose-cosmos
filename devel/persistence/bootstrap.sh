@@ -8,6 +8,8 @@ NETWORK=${NETWORK:-"localnet"}
 OS_PLATFORM=$(uname -s)
 OS_ARCH=$(uname -m)
 PERSISTENCE_PLATFORM=${PERSISTENCE_PLATFORM:-"darwin-amd64"}
+persistenceCore_PATH="./persistenceCore"
+PERSISTENCE_COMMON_BLOCKSTREAM_ADDR=${PERSISTENCE_COMMON_BLOCKSTREAM_ADDR:-"localhost:9000"}
 
 case $NETWORK in
   mainnet)
@@ -15,13 +17,12 @@ case $NETWORK in
     PERSISTENCE_VERSION=${PERSISTENCE_VERSION:-"v3.0.1"}
     PERSISTENCE_GENESIS="https://raw.githubusercontent.com/persistenceOne/networks/master/core-1/final_genesis.json"
     PERSISTENCE_GENESIS_HEIGHT=${PERSISTENCE_GENESIS_HEIGHT:-"1"}
-    PERSISTENCE_ADDRESS_BOOK="https://quicksync.io/addrbook.cosmos.json"
   ;;
   testnet)
     echo "Using TESTNET"
     PERSISTENCE_VERSION=${PERSISTENCE_VERSION:-"v0.1.3"}
     PERSISTENCE_GENESIS="https://raw.githubusercontent.com/persistenceOne/networks/master/test-core-1/final_genesis.json"
-    PERSISTENCE_GENESIS_HEIGHT=${PERSISTENCE_GENESIS_HEIGHT:-"7044310"}
+    PERSISTENCE_GENESIS_HEIGHT=${PERSISTENCE_GENESIS_HEIGHT:-"1"}
   ;;
   localnet)
     echo "Using LOCALNET"
@@ -29,9 +30,7 @@ case $NETWORK in
     PERSISTENCE_VERSION=${PERSISTENCE_VERSION:-"v3.0.1"}
     PERSISTENCE_GENESIS=""
     PERSISTENCE_GENESIS_HEIGHT=${PERSISTENCE_GENESIS_HEIGHT:-"1"}
-#    MNEMONIC_1=${MNEMONIC_1:-"gravity bus kingdom auto limit gate humble abstract reopen resemble awkward cannon maximum bread balance insane banana maple screen mimic cluster pigeon badge walnut"}
-#    MNEMONIC_2=${MNEMONIC_2:-"obtain door word season wealth inspire tobacco shallow thumb tip walk forum someone verb pistol bright mutual nest fog valley tiny section sauce typical"}
-#    MNEMONIC_3=${MNEMONIC_3:-"hungry foil sort arrest lizard sing acquire traffic veteran entire empty humble coach melody avoid gospel pair above chuckle hip list cage vessel zebra"}
+    persistenceCore_PATH="persistenceCore"
     MNEMONIC_1=${MNEMONIC_1:-"guard cream sadness conduct invite crumble clock pudding hole grit liar hotel maid produce squeeze return argue turtle know drive eight casino maze host"}
     MNEMONIC_2=${MNEMONIC_2:-"friend excite rough reopen cover wheel spoon convince island path clean monkey play snow number walnut pull lock shoot hurry dream divide concert discover"}
     MNEMONIC_3=${MNEMONIC_3:-"fuel obscure melt april direct second usual hair leave hobby beef bacon solid drum used law mercy worry fat super must ritual bring faculty"}
@@ -63,21 +62,23 @@ pushd tmp
 
 echo "Your platform is $OS_PLATFORM/$OS_ARCH"
 
-if [ ! -f "persistenceCore" ]; then
-  echo "Downloading persistenceCore $PERSISTENCE_VERSION binary"
-  wget --quiet -O ./persistenceCore.tar.gz "https://github.com/persistenceOne/persistenceCore/releases/download/$PERSISTENCE_VERSION/persistenceCore-$PERSISTENCE_PLATFORM.tar.gz"
-  tar xzf ./persistenceCore.tar.gz
-  rm -rf ./persistenceCore.tar.gz
-  chmod +x ./persistenceCore
+if [[ -z $(which persistenceCore || true) ]]; then
+  echo "Please make sure you have installed local persistenceCore $PERSISTENCE_VERSION binary"
+  exit 1
 fi
 
 if [ ! -d "persistenceCore_home" ]; then
   echo "Configuring home directory"
-  ./persistenceCore --home=persistenceCore_home init $(hostname) --chain-id $CHAIN_ID 2> /dev/null
-#  ./persistenceCore --home=persistenceCore_home init $(hostname) 2> /dev/null
-#  rm -f \
-#    persistenceCore_home/config/genesis.json \
-#    persistenceCore_home/config/addrbook.json
+  case $NETWORK in
+    localnet)
+      $persistenceCore_PATH --home=persistenceCore_home init $(hostname) --chain-id $CHAIN_ID 2> /dev/null ;;
+    *)
+      $persistenceCore_PATH --home=persistenceCore_home init $(hostname) 2> /dev/null
+      rm -f \
+        persistenceCore_home/config/genesis.json \
+        persistenceCore_home/config/addrbook.json
+    ;;
+  esac
 fi
 
 case $NETWORK in
@@ -99,19 +100,19 @@ case $NETWORK in
   ;;
   localnet) # Setup localnet
     echo "Adding genesis accounts..."
-    echo "y" | ./persistenceCore --home persistenceCore_home keys delete validator --keyring-backend test
-    echo "y" | ./persistenceCore --home persistenceCore_home keys delete user1 --keyring-backend test
-    echo "y" | ./persistenceCore --home persistenceCore_home keys delete user2 --keyring-backend test
-    echo $MNEMONIC_1 | ./persistenceCore --home persistenceCore_home keys add validator --recover --keyring-backend test
-    echo $MNEMONIC_2 | ./persistenceCore --home persistenceCore_home keys add user1 --recover --keyring-backend test
-    echo $MNEMONIC_3 | ./persistenceCore --home persistenceCore_home keys add user2 --recover --keyring-backend test
-    ./persistenceCore --home persistenceCore_home add-genesis-account $(./persistenceCore --home persistenceCore_home keys show validator --keyring-backend test -a) $GENESIS_COINS
-    ./persistenceCore --home persistenceCore_home add-genesis-account $(./persistenceCore --home persistenceCore_home keys show user1 --keyring-backend test -a) $GENESIS_COINS
-    ./persistenceCore --home persistenceCore_home add-genesis-account $(./persistenceCore --home persistenceCore_home keys show user2 --keyring-backend test -a) $GENESIS_COINS
+    echo "y" | $persistenceCore_PATH --home persistenceCore_home keys delete validator --keyring-backend test
+    echo "y" | $persistenceCore_PATH --home persistenceCore_home keys delete user1 --keyring-backend test
+    echo "y" | $persistenceCore_PATH --home persistenceCore_home keys delete user2 --keyring-backend test
+    echo $MNEMONIC_1 | $persistenceCore_PATH --home persistenceCore_home keys add validator --recover --keyring-backend test
+    echo $MNEMONIC_2 | $persistenceCore_PATH --home persistenceCore_home keys add user1 --recover --keyring-backend test
+    echo $MNEMONIC_3 | $persistenceCore_PATH --home persistenceCore_home keys add user2 --recover --keyring-backend test
+    $persistenceCore_PATH --home persistenceCore_home add-genesis-account $($persistenceCore_PATH --home persistenceCore_home keys show validator --keyring-backend test -a) $GENESIS_COINS
+    $persistenceCore_PATH --home persistenceCore_home add-genesis-account $($persistenceCore_PATH --home persistenceCore_home keys show user1 --keyring-backend test -a) $GENESIS_COINS
+    $persistenceCore_PATH --home persistenceCore_home add-genesis-account $($persistenceCore_PATH --home persistenceCore_home keys show user2 --keyring-backend test -a) $GENESIS_COINS
 
     echo "Creating and collecting gentx..."
-    ./persistenceCore --home persistenceCore_home gentx validator 1000000000stake --chain-id $CHAIN_ID --keyring-backend test
-    ./persistenceCore --home persistenceCore_home collect-gentxs
+    $persistenceCore_PATH --home persistenceCore_home gentx validator 1000000000stake --chain-id $CHAIN_ID --keyring-backend test
+    $persistenceCore_PATH --home persistenceCore_home collect-gentxs
   ;;
 esac
 
@@ -134,10 +135,10 @@ start:
     - firehose
   flags:
     common-first-streamable-block: $PERSISTENCE_GENESIS_HEIGHT
-    common-blockstream-addr:
+    common-blockstream-addr: $PERSISTENCE_COMMON_BLOCKSTREAM_ADDR
     ingestor-mode: node
-    ingestor-node-path: ./persistenceCore
-    ingestor-node-args: start --x-crisis-skip-assert-invariants --home=./persistenceCore_home
+    ingestor-node-path: $(which persistenceCore)
+    ingestor-node-args: start --x-crisis-skip-assert-invariants --home=persistenceCore_home
     ingestor-node-logs-filter: "module=(p2p|pex|consensus|x/bank)"
     firehose-real-time-tolerance: 99999h
     relayer-max-source-latency: 99999h
