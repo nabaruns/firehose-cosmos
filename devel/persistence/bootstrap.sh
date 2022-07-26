@@ -8,7 +8,7 @@ NETWORK=${NETWORK:-"localnet"}
 OS_PLATFORM=$(uname -s)
 OS_ARCH=$(uname -m)
 PERSISTENCE_PLATFORM=${PERSISTENCE_PLATFORM:-"darwin-amd64"}
-persistenceCore_PATH="./persistenceCore"
+persistenceCore_PATH="persistenceCore"
 PERSISTENCE_COMMON_BLOCKSTREAM_ADDR=${PERSISTENCE_COMMON_BLOCKSTREAM_ADDR:-"localhost:9000"}
 
 case $NETWORK in
@@ -20,7 +20,7 @@ case $NETWORK in
   ;;
   testnet)
     echo "Using TESTNET"
-    PERSISTENCE_VERSION=${PERSISTENCE_VERSION:-"v0.1.3"}
+    PERSISTENCE_VERSION=${PERSISTENCE_VERSION:-"v3.0.1"}
     PERSISTENCE_GENESIS="https://raw.githubusercontent.com/persistenceOne/networks/master/test-core-1/final_genesis.json"
     PERSISTENCE_GENESIS_HEIGHT=${PERSISTENCE_GENESIS_HEIGHT:-"1"}
   ;;
@@ -30,7 +30,6 @@ case $NETWORK in
     PERSISTENCE_VERSION=${PERSISTENCE_VERSION:-"v3.0.1"}
     PERSISTENCE_GENESIS=""
     PERSISTENCE_GENESIS_HEIGHT=${PERSISTENCE_GENESIS_HEIGHT:-"1"}
-    persistenceCore_PATH="persistenceCore"
     MNEMONIC_1=${MNEMONIC_1:-"guard cream sadness conduct invite crumble clock pudding hole grit liar hotel maid produce squeeze return argue turtle know drive eight casino maze host"}
     MNEMONIC_2=${MNEMONIC_2:-"friend excite rough reopen cover wheel spoon convince island path clean monkey play snow number walnut pull lock shoot hurry dream divide concert discover"}
     MNEMONIC_3=${MNEMONIC_3:-"fuel obscure melt april direct second usual hair leave hobby beef bacon solid drum used law mercy worry fat super must ritual bring faculty"}
