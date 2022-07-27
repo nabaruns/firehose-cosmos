@@ -4,7 +4,7 @@ set -o errexit
 set -o pipefail
 
 CLEANUP=${CLEANUP:-"0"}
-NETWORK=${NETWORK:-"localnet"}
+NETWORK=${NETWORK:-"testnet"}
 OS_PLATFORM=$(uname -s)
 OS_ARCH=$(uname -m)
 PERSISTENCE_PLATFORM=${PERSISTENCE_PLATFORM:-"darwin-amd64"}
@@ -22,7 +22,7 @@ case $NETWORK in
     echo "Using TESTNET"
     PERSISTENCE_VERSION=${PERSISTENCE_VERSION:-"v3.0.1"}
     PERSISTENCE_GENESIS="https://raw.githubusercontent.com/persistenceOne/networks/master/test-core-1/final_genesis.json"
-    PERSISTENCE_GENESIS_HEIGHT=${PERSISTENCE_GENESIS_HEIGHT:-"1"}
+    PERSISTENCE_GENESIS_HEIGHT=${PERSISTENCE_GENESIS_HEIGHT:-"7232900"}
   ;;
   localnet)
     echo "Using LOCALNET"
@@ -96,6 +96,11 @@ case $NETWORK in
     fi
     echo "Configuring p2p seeds"
     sed -i -e 's/seeds = ""/seeds = "a530147d623ef4cbb9d61d06c5e8ddd04180d972@13.208.223.192:26656,ca6da5de41d2a0c317f1d885efe74e9a580cd593@10.128.0.2:26656,10e69554d68b3c737a7c6bb55938f38e6b547ea7@220.76.21.184:43006,642cba81f229c50457008410ab5a7a3e6b7b39fe@85.214.61.70:26656,e6f73a89cce68ca961517cf861dbf294a03ad340@18.179.50.45:26656,d4738dfdeede1047076de9ddcc3bef269bdfb898@35.223.239.9:26656,d1fe16cbd078a56465ad2f02bfbf3c8a22253790@13.125.252.209:26656,723218672704e92a65100ddc28cd5719ada07686@3.25.196.255:26656,e46e42065d8fb108b8f2add2539b16b01f0544f4@13.244.233.149:26656"/g' persistenceCore_home/config/config.toml
+    sed -i -e 's/enable = false/enable = true/g' persistenceCore_home/config/config.toml
+    sed -i -e 's/rpc_servers = ""/rpc_servers = "https:\/\/rpc.testnet.persistence.one:443,https:\/\/rpc.testnet.persistence.one:443"/g' persistenceCore_home/config/config.toml
+    sed -i -e 's/trust_height = 0/trust_height = 7221716/g' persistenceCore_home/config/config.toml
+    sed -i -e 's/trust_hash = ""/trust_hash = "1F836BCEA5AF44B985CA4CFD39CC2514FC5F3A799F68EF1622589D2931ED03E3"/g' persistenceCore_home/config/config.toml
+    sed -i -e 's/trust_period = "168h0m0s"/trust_period = "112h0m0s"/g' persistenceCore_home/config/config.toml
   ;;
   localnet) # Setup localnet
     echo "Adding genesis accounts..."
