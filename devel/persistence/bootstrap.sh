@@ -34,6 +34,7 @@ case $NETWORK in
     MNEMONIC_2=${MNEMONIC_2:-"friend excite rough reopen cover wheel spoon convince island path clean monkey play snow number walnut pull lock shoot hurry dream divide concert discover"}
     MNEMONIC_3=${MNEMONIC_3:-"fuel obscure melt april direct second usual hair leave hobby beef bacon solid drum used law mercy worry fat super must ritual bring faculty"}
     GENESIS_COINS=${GENESIS_COINS:-"1000000000000000stake"}
+    GENESIS_COINS_U=${GENESIS_COINS_UXPRT:-"1000000000000000uxprt"}
   ;;
   *)
     echo "Invalid network: $NETWORK"; exit 1;
@@ -111,8 +112,8 @@ case $NETWORK in
     echo $MNEMONIC_2 | $persistenceCore_PATH --home persistenceCore_home keys add user1 --recover --keyring-backend test
     echo $MNEMONIC_3 | $persistenceCore_PATH --home persistenceCore_home keys add user2 --recover --keyring-backend test
     $persistenceCore_PATH --home persistenceCore_home add-genesis-account $($persistenceCore_PATH --home persistenceCore_home keys show validator --keyring-backend test -a) $GENESIS_COINS
-    $persistenceCore_PATH --home persistenceCore_home add-genesis-account $($persistenceCore_PATH --home persistenceCore_home keys show user1 --keyring-backend test -a) $GENESIS_COINS
-    $persistenceCore_PATH --home persistenceCore_home add-genesis-account $($persistenceCore_PATH --home persistenceCore_home keys show user2 --keyring-backend test -a) $GENESIS_COINS
+    $persistenceCore_PATH --home persistenceCore_home add-genesis-account $($persistenceCore_PATH --home persistenceCore_home keys show user1 --keyring-backend test -a) $GENESIS_COINS_UXPRT
+    $persistenceCore_PATH --home persistenceCore_home add-genesis-account $($persistenceCore_PATH --home persistenceCore_home keys show user2 --keyring-backend test -a) $GENESIS_COINS_UXPRT
 
     echo "Creating and collecting gentx..."
     $persistenceCore_PATH --home persistenceCore_home gentx validator 1000000000stake --chain-id $CHAIN_ID --keyring-backend test
